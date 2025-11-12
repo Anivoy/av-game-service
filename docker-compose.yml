@@ -1,0 +1,36 @@
+version: "3.9"
+
+networks:
+  anivoy-shared-net:
+    external: true
+
+services:
+  service-name:
+    build:
+      context: .
+      target: development
+    container_name: anivoy-service-name
+    ports:
+      - "5080:5080"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - anivoy-shared-net
+
+  service-cron:
+    build:
+      context: .
+      target: production
+    container_name: anivoy-service-name-cron
+    command: ["npm", "run", "cron"]
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - anivoy-shared-net
