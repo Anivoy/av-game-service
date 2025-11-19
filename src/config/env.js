@@ -1,17 +1,20 @@
-import { config } from "dotenv";
+import { config } from 'dotenv';
 config();
 
 const serverConfig = Object.freeze({
-  PORT: parseInt(process.env.PORT || "5087"),
-  MODE: process.env.NODE_ENV || "production",
-  DATABASE_URL: process.env.DATABASE_URL
+  PORT: parseInt(process.env.PORT || '5087'),
+  MODE: process.env.NODE_ENV || 'production',
 });
 
-const rateLimitConfig = Object.freeze({
-  GLOBAL_LIMIT_WINDOW: parseInt(process.env.GLOBAL_LIMIT_WINDOW || `${15 * 60 * 1000}`), // 15 minutes
-  GLOBAL_LIMIT_MAX: parseInt(process.env.GLOBAL_LIMIT_MAX || "100")
-})
-export {
-  serverConfig,
-  rateLimitConfig
-}
+const serviceConfig = Object.freeze({
+  SCENE_SERVICE_URL: process.env.SCENE_SERVICE_URL,
+});
+
+const redisConfig = Object.freeze({
+  REDIS_HOST: process.env.REDIS_HOST,
+  REDIS_PORT: process.env.REDIS_PORT,
+  REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+  REDIS_DB: process.env.REDIS_DB,
+});
+
+export { serverConfig, serviceConfig, redisConfig };

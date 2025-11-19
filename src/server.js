@@ -1,12 +1,13 @@
 import app from "./app.js";
 import { serverConfig } from "./config/env.js";
-import { displayBanner, testDatabaseConnection } from "./utils/serverUtility.js";
+import { displayBanner, gracefulShutdown, testDatabaseConnection, testRedisConnection } from "./utils/serverUtility.js";
 
 const startServer = async () => {
   try {
     displayBanner();
 
     await testDatabaseConnection();
+    await testRedisConnection();
 
     const server = app.listen(serverConfig.PORT, () => {
       console.log(`Server running on port ${serverConfig.PORT}\n`);

@@ -1,0 +1,33 @@
+model GameSession {
+  id        String   @id @default(uuid())
+  userId    String
+
+  gameMode     String   @default("standard")
+  totalRounds  Int      @default(5)
+  
+  status       SessionStatus @default(COMPLETED)
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  totalDuration Int?
+  
+  finalScore     Int
+  averageDistance Float
+  perfectRounds  Int @default(0)
+  
+  rounds    GameRound[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([userId, completedAt])
+  @@index([finalScore])
+  @@index([createdAt])
+  @@map("game_sessions")
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}

@@ -1,0 +1,31 @@
+model GameRound {
+  id            String      @id @default(uuid())
+  sessionId     String
+  session       GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  roundNumber   Int         // 1-5
+  
+  // Scene reference (from Scene Service)
+  sceneId       String
+  
+  // Player's guess
+  guessLat      Float
+  guessLng      Float
+  
+  // Actual location (denormalized for historical accuracy)
+  actualLat     Float
+  actualLng     Float
+  actualLocation String     // City/Prefecture name
+  
+  // Results
+  distance      Float       // Kilometers from actual location
+  score         Int         // Points earned
+  timeSpent     Int         // Seconds to make guess
+  
+  // Timestamps
+  guessedAt     DateTime
+  
+  @@index([sessionId, roundNumber])
+  @@index([sceneId]) // To analyze scene difficulty
+  @@map("game_rounds")
+}
