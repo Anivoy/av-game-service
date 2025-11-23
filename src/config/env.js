@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 config();
 
 const serverConfig = Object.freeze({
-  PORT: parseInt(process.env.PORT || '5087'),
+  PORT: parseInt(process.env.PORT || '7300'),
   MODE: process.env.NODE_ENV || 'production',
 });
 
