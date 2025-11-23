@@ -16,6 +16,12 @@ WORKDIR /app
 COPY package*.json /app/
 RUN npm ci && npm cache clean --force
 
+# Copy prisma schema so prisma commands work
+COPY prisma ./prisma
+
+# Generate prisma client
+RUN npx prisma generate
+
 # ----------------------
 # Development stage
 # ----------------------
@@ -30,8 +36,8 @@ COPY . /app/
 # Expose dev port
 EXPOSE 7300
 
-# Command to serve for development
-CMD ["npm", "run", "dev"]
+# Run migrations before start
+CMD [ "sh", "-c", "npx prisma migrate deploy && npm start" ]
 
 # ----------------------
 # Production Stage
@@ -47,5 +53,5 @@ COPY . /app/
 # Expose dev port
 EXPOSE 7300
 
-# Command to serve for production
-CMD ["node", "server.js"]
+# Run migrations before start
+CMD [ "sh", "-c", "npx prisma migrate deploy && npm start" ]

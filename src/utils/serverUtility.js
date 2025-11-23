@@ -15,7 +15,7 @@ export function displayBanner() {
   console.log(`Game Service v1.0.0 [${serverConfig.MODE}]\n`);
 }
 
-export async function testDatabaseConnection(maxRetries = 5, retryDelay = 3000) {
+export async function testDatabaseConnection(maxRetries = 30, retryDelay = 5000) {
   let attempt = 0;
 
   while (attempt < maxRetries) {
@@ -44,7 +44,7 @@ export async function testDatabaseConnection(maxRetries = 5, retryDelay = 3000) 
   return false;
 }
 
-export async function testRedisConnection(maxRetries = 5, retryDelay = 3000) {
+export async function testRedisConnection(maxRetries = 30, retryDelay = 5000) {
   let attempt = 0;
 
   while (attempt < maxRetries) {
