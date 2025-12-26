@@ -2,13 +2,14 @@ model GameSession {
   id        String   @id @default(uuid())
   userId    String
 
-  gameMode     String   @default("standard")
-  totalRounds  Int      @default(5)
+  gameModeId       String
+  gameMode         GameMode        @relation(fields: [gameModeId], references: [id])
+  totalRounds      Int             @default(5) 
   
-  status       SessionStatus @default(COMPLETED)
-  startedAt    DateTime @default(now())
-  completedAt  DateTime?
-  totalDuration Int?
+  status           SessionStatus   @default(COMPLETED)
+  startedAt        DateTime        @default(now())
+  completedAt      DateTime?
+  totalDuration    Int?
   
   finalScore     Int
   averageDistance Float
@@ -23,6 +24,7 @@ model GameSession {
   @@index([userId, completedAt])
   @@index([finalScore])
   @@index([createdAt])
+  @@index([gameModeId])
   @@map("game_sessions")
 }
 

@@ -1,0 +1,18 @@
+model SceneQueryConfig {
+  id                String    @id @default(uuid())
+  gameModeId        String    @unique
+  gameMode          GameMode  @relation(fields: [gameModeId], references: [id])
+  count             Int       @default(5)
+  
+  showId            String?
+  regionId          String?
+  prefectureId      String?
+  cityId            String?
+
+  difficultyWeights Json      @default("[]")
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@map("scene_query_configs")
+}
