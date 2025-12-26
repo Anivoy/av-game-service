@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
-export const createGameSessionSchema = z.object({
-  gameMode: z.string().min(1, "Game mode cannot be empty").optional(),
-});
+export const createGameSessionSchema = z
+  .object({
+    gameMode: z.string().min(1, 'Game mode cannot be empty').optional(),
+  })
+  .default({});
 
 export const submitGuessSchema = z.object({
   latitude: z.number().min(-90).max(90),

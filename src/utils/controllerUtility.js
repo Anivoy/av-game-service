@@ -8,7 +8,11 @@ export function validate(schema, source = 'body') {
       }
 
       const validated = schema.parse(req[source]);
-      req[source] = validated;
+      if (source === 'query') {
+        Object.assign(req.query, validated);
+      } else {
+        req[source] = validated;
+      }
       next();
     } catch (err) {
       next(err);

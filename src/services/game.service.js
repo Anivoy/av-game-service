@@ -14,7 +14,7 @@ const MAX_SCORE = 5000;
 function normalizeSessionResponse(session, guessingScene = null, revealedScene = null, lastRoundResult = null) {
   const currentRound = parseInt(session.currentRound);
   const totalRounds = parseInt(session.totalRounds);
-  const isGameOver = currentRound > totalRounds;
+  const isGameOver = currentRound >= totalRounds;
 
   const response = {
     sessionId: session.sessionId || session.id,
@@ -257,7 +257,7 @@ async function submitGuess(sessionId, userId, data) {
     scene.latitude,
     scene.longitude
   );
-  const score = calculateScore(distance);
+  const score = calculateScore(distance, MAX_SCORE);
   
   const roundStartTime = parseInt(session.roundStartTime);
   const timeSpent = Math.floor((dayjs().valueOf() - roundStartTime) / 1000);
@@ -328,15 +328,6 @@ async function revealScene(sessionId, userId) {
 
   const sceneDetails = await fetchSceneById(currentRoundData.sceneId, false);
   
-  const totalRounds = parseInt(session.totalRounds);
-  const isGameOver = currentRound >= totalRounds;
-  
-  if (isGameOver) {
-    await saveGameSessionToDatabase(sessionId, session, rounds);
-    await redisClient.del(`${REDIS_SESSION_PREFIX}${sessionId}`);
-    logger.info('Game session completed and saved to database', { sessionId });
-  }
-  
   const lastRoundResult = {
     score: currentRoundData.score,
     distance: Math.round(currentRoundData.distance * 100) / 100,
@@ -377,15 +368,24 @@ async function nextRound(sessionId, userId) {
 
   const currentRound = parseInt(session.currentRound);
   const totalRounds = parseInt(session.totalRounds);
-  const nextRoundNumber = currentRound + 1;
-  
-  if (nextRoundNumber > totalRounds) {
-    logger.warn('No more rounds available', { sessionId, currentRound });
-    return normalizeSessionResponse(
-      { ...session, sessionId, currentRound: nextRoundNumber },
-      null
-    );
+
+  const isLastRound = currentRound >= totalRounds;
+
+  if (isLastRound) {
+    logger.info('Finalizing game session', { sessionId });
+
+    const rounds = JSON.parse(session.rounds || '[]');
+
+    await saveGameSessionToDatabase(sessionId, session, rounds);
+    await redisClient.del(`${REDIS_SESSION_PREFIX}${sessionId}`);
+
+    return {
+      isGameOver: true,
+      sessionId,
+    };
   }
+
+  const nextRoundNumber = currentRound + 1;
   
   await redisClient.hset(`${REDIS_SESSION_PREFIX}${sessionId}`, {
     currentRound: nextRoundNumber.toString(),
@@ -552,17 +552,14 @@ async function getUserGameHistory(userId, query) {
       orderBy: { completedAt: 'desc' },
       skip,
       take: limit,
-      include: {
+      select: {
+        id: true,
         gameMode: {
           select: {
             id: true,
             title: true,
           },
         },
-      },
-      select: {
-        id: true,
-        gameMode: true,
         status: true,
         startedAt: true,
         completedAt: true,
