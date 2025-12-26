@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createGameSessionSchema = z.object({
-  gameMode: z.enum(['standard', 'timed', 'challenge']).optional().default('standard'),
+  gameMode: z.string().min(1, "Game mode cannot be empty").optional(),
 });
 
 export const submitGuessSchema = z.object({
@@ -9,7 +9,9 @@ export const submitGuessSchema = z.object({
   longitude: z.number().min(-180).max(180),
 });
 
-export const sessionIdParamSchema = z.uuid('Invalid session ID format');
+export const sessionIdParamSchema = z.object({
+  sessionId: z.uuid('Invalid session ID format'),
+});
 
 export const getHistoryQuerySchema = z.object({
   page: z.string().regex(/^\d+$/).transform(Number).optional().default('1'),

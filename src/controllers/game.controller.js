@@ -1,35 +1,27 @@
 import gameService from '../services/game.service.js';
+import { getUserId, validate } from '../utils/controllerUtility.js';
 import {
   createGameSessionSchema,
   submitGuessSchema,
   sessionIdParamSchema,
   getHistoryQuerySchema,
 } from '../validations/game.validation.js';
-import { AppError } from '../utils/errorUtility.js';
 
-export function validate(schema, source = 'body') {
-  return (req, res, next) => {
-    try {
-      if (!(source in req)) {
-        throw new AppError(`Invalid validation source: ${source}`, 500);
-      }
+async function getGameSession(req, res, next) {
+  try {
+    const userId = getUserId(req);
+    const { sessionId } = req.params;
+    const result = await gameService.getGameSession(sessionId, userId);
 
-      const validated = schema.parse(req[source]);
-      req[source] = validated;
-      next();
-    } catch (err) {
-      next(err);
-    }
-  };
-}
-
-const getUserId = (req) => {
-  const userId = req.headers['x-user-id'];
-  if (!userId) {
-    throw new AppError('User ID not found in request headers', 401);
+    res.status(200).json({
+      success: true,
+      message: 'Game session retrieved successfully',
+      data: result,
+    });
+  } catch (error) {
+    next(error);
   }
-  return userId;
-};
+}
 
 async function createGameSession(req, res, next) {
   try {
@@ -132,25 +124,29 @@ async function getUserGameHistory(req, res, next) {
 }
 
 export default {
+  getGameSession: [
+    validate(sessionIdParamSchema, 'params'),
+    getGameSession
+  ],
   createGameSession: [
     validate(createGameSessionSchema, 'body'),
     createGameSession,
   ],
   submitGuess: [
-    validate(sessionIdParamSchema.transform(sessionId => ({ sessionId })), 'params'),
+    validate(sessionIdParamSchema, 'params'),
     validate(submitGuessSchema, 'body'),
     submitGuess,
   ],
   revealScene: [
-    validate(sessionIdParamSchema.transform(sessionId => ({ sessionId })), 'params'),
+    validate(sessionIdParamSchema, 'params'),
     revealScene,
   ],
   nextRound: [
-    validate(sessionIdParamSchema.transform(sessionId => ({ sessionId })), 'params'),
+    validate(sessionIdParamSchema, 'params'),
     nextRound,
   ],
   getGameHistory: [
-    validate(sessionIdParamSchema.transform(sessionId => ({ sessionId })), 'params'),
+    validate(sessionIdParamSchema, 'params'),
     getGameHistory,
   ],
   getUserGameHistory: [

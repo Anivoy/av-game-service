@@ -12,11 +12,24 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-// TODO: Expand later
-export function calculateScore(distance) {
-  if (distance < 1) return MAX_SCORE;
+export function calculateScore(distance, maxScore) {
+  if (distance < 1) return maxScore;
   if (distance > 5000) return 0;
 
-  const score = Math.round(MAX_SCORE * Math.exp(-distance / 1000));
+  const score = Math.round(maxScore * Math.exp(-distance / 1000));
   return Math.max(0, score);
+}
+
+export function buildActualLocation({ city, prefecture, region }) {
+  const levels = [
+    city,
+    prefecture,
+    region
+  ].filter(Boolean);
+
+  if (levels.length >= 3) {
+    return levels.slice(1, 3).join(', ');
+  }
+
+  return levels.slice(0, 2).join(', ');
 }
