@@ -58,8 +58,6 @@ export function calculateScore(distanceKm, maxScore = 5000) {
   );
 }
 
-
-
 export function buildActualLocation({ region, prefecture, city }) {
   const regionName = region?.name ?? null;
   const prefectureName = prefecture?.name ?? null;
