@@ -26,32 +26,39 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-export function calculateScore(distanceKm, maxScore = 5000, minScore = 100) {
+export function calculateScore(
+  distanceKm,
+  { maxScore = 5000, minScore = 100, difficultyMultiplier = 1 },
+) {
   if (distanceKm <= 0.25) return maxScore;
   if (distanceKm >= SCORE_CONFIG.TIERS.REGION) return minScore;
-  
+
   const { CITY, PREFECTURE } = SCORE_CONFIG.TIERS;
   const { CITY: DC, PREFECTURE: DP, REGION: DR } = SCORE_CONFIG.DECAY;
-  
+
+  const dcAdjusted = DC * difficultyMultiplier;
+  const dpAdjusted = DP * difficultyMultiplier;
+  const drAdjusted = DR * difficultyMultiplier;
+
   let normalizedScore; // 0 -> 1
-  
+
   if (distanceKm <= CITY) {
-    normalizedScore = Math.exp(-distanceKm * DC);
+    normalizedScore = Math.exp(-distanceKm * dcAdjusted);
   } else if (distanceKm <= PREFECTURE) {
-    const cityEndScore = Math.exp(-CITY * DC);
+    const cityEndScore = Math.exp(-CITY * dcAdjusted);
     const d = distanceKm - CITY;
-    
-    normalizedScore = cityEndScore * Math.exp(-d * DP);
+
+    normalizedScore = cityEndScore * Math.exp(-d * dpAdjusted);
   } else {
-    const cityEndScore = Math.exp(-CITY * DC);
-    const prefectureEndScore = cityEndScore * Math.exp(-(PREFECTURE - CITY) * DP);
+    const cityEndScore = Math.exp(-CITY * dcAdjusted);
+    const prefectureEndScore = cityEndScore * Math.exp(-(PREFECTURE - CITY) * dpAdjusted);
     const d = distanceKm - PREFECTURE;
 
-    normalizedScore = prefectureEndScore * Math.exp(-d * DR);
+    normalizedScore = prefectureEndScore * Math.exp(-d * drAdjusted);
   }
-  
-  const finalScore = minScore + (normalizedScore * (maxScore - minScore));
-  
+
+  const finalScore = minScore + normalizedScore * (maxScore - minScore);
+
   return Math.round(finalScore);
 }
 

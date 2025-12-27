@@ -18,6 +18,8 @@ function normalizeSessionResponse(session, guessingScene = null, revealedScene =
 
   const response = {
     sessionId: session.sessionId || session.id,
+    gameModeId: session.gameModeId,
+    gameMode: session.gameMode,
     status: session.status,
     currentRound,
     currentRoundState: session.currentRoundState,
@@ -257,7 +259,10 @@ async function submitGuess(sessionId, userId, data) {
     scene.latitude,
     scene.longitude
   );
-  const score = calculateScore(distance, MAX_SCORE);
+  const score = calculateScore(distance, {
+    maxScore: MAX_SCORE,
+    difficultyMultiplier: scene?.difficulty?.multiplier ?? 1,
+  });
   
   const roundStartTime = parseInt(session.roundStartTime);
   const timeSpent = Math.floor((dayjs().valueOf() - roundStartTime) / 1000);
