@@ -4,7 +4,7 @@ import { redisClient } from '../config/redis.js';
 import { logger } from '../config/logger.js';
 import { AppError } from '../utils/errorUtility.js';
 import { buildActualLocation, calculateDistance, calculateScore } from '../utils/gameUtility.js';
-import { fetchSceneById, fetchScenesFromService } from '../utils/sceneUtility.js';
+import { fetchSceneById, fetchSceneByIds, fetchScenesFromService } from '../utils/sceneUtility.js';
 import dayjs from 'dayjs';
 
 const REDIS_SESSION_PREFIX = 'game:session:';
@@ -14,7 +14,7 @@ const MAX_SCORE = 5000;
 function normalizeSessionResponse(session, guessingScene = null, revealedScene = null, lastRoundResult = null) {
   const currentRound = parseInt(session.currentRound);
   const totalRounds = parseInt(session.totalRounds);
-  const isGameOver = currentRound >= totalRounds;
+  const isGameOver = session.currentRoundState === "REVEALED" && currentRound >= totalRounds;
 
   const response = {
     sessionId: session.sessionId || session.id,
@@ -53,7 +53,7 @@ function normalizeSessionResponse(session, guessingScene = null, revealedScene =
       longitude: revealedScene.longitude,
       snippet: revealedScene?.imagePairs?.snippetUrl || null,
       reference: revealedScene?.imagePairs?.referenceUrl || null,
-      difficulty: revealedScene.difficulty?.name,
+      difficulty: revealedScene.difficulty,
     };
   }
 
@@ -101,6 +101,11 @@ async function getGameSession(sessionId, userId) {
           score: lastRound.score,
           distance: Math.round(lastRound.distance * 100) / 100,
           timeSpent: lastRound.timeSpent,
+          guessedAt: lastRound.guessedAt,
+          guess: {
+            latitude: lastRound.userLat,
+            longitude: lastRound.userLng,
+          },
         };
       }
     }
@@ -337,6 +342,11 @@ async function revealScene(sessionId, userId) {
     score: currentRoundData.score,
     distance: Math.round(currentRoundData.distance * 100) / 100,
     timeSpent: currentRoundData.timeSpent,
+    guessedAt: currentRoundData.guessedAt,
+    guess: {
+      latitude: currentRoundData.userLat,
+      longitude: currentRoundData.userLng,
+    },
   };
 
   return normalizeSessionResponse(
@@ -509,7 +519,29 @@ async function getGameHistory(sessionId, userId) {
     logger.warn('Unauthorized access to game history', { sessionId, userId });
     throw new AppError('Unauthorized access to this game session', 403);
   }
-  
+
+  const scenes = await fetchSceneByIds(session.rounds.map((r) => r.sceneId), true);
+  const sceneLookup = new Map(scenes.map((s) => [s.id, s]));
+
+  const rounds = session.rounds.map(r => ({
+    roundNumber: r.roundNumber,
+    sceneId: r.sceneId,
+    scene: sceneLookup.get(r.sceneId) || null,
+    guess: {
+      latitude: r.guessLat,
+      longitude: r.guessLng,
+    },
+    actual: {
+      latitude: r.actualLat,
+      longitude: r.actualLng,
+      location: r.actualLocation,
+    },
+    distance: Math.round(r.distance * 100) / 100,
+    score: r.score,
+    timeSpent: r.timeSpent,
+    guessedAt: r.guessedAt,
+  }));
+
   return {
     sessionId: session.id,
     gameMode: {
@@ -524,23 +556,7 @@ async function getGameHistory(sessionId, userId) {
     totalScore: session.finalScore,
     averageDistance: Math.round(session.averageDistance * 100) / 100,
     perfectRounds: session.perfectRounds,
-    rounds: session.rounds.map(r => ({
-      roundNumber: r.roundNumber,
-      sceneId: r.sceneId,
-      guess: {
-        latitude: r.guessLat,
-        longitude: r.guessLng,
-      },
-      actual: {
-        latitude: r.actualLat,
-        longitude: r.actualLng,
-        location: r.actualLocation,
-      },
-      distance: Math.round(r.distance * 100) / 100,
-      score: r.score,
-      timeSpent: r.timeSpent,
-      guessedAt: r.guessedAt,
-    })),
+    rounds
   };
 }
 

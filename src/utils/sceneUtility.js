@@ -105,3 +105,37 @@ export async function fetchSceneById(sceneId, minimal = false) {
     throw new AppError('Scene Service is unavailable', 503);
   }
 }
+
+/**
+ * Fetch a single scene by ID from Scene Service
+ * @param {string[]} sceneIds - The scene ID to fetch
+ * @param {boolean} [minimal=false] - Whether to fetch minimal data
+ * @returns {Promise<Object>} Scene object
+ */
+export async function fetchSceneByIds(sceneIds = [], minimal = false) {
+  try {
+    logger.info('Fetching scene by ID from Scene Service', { sceneIds, minimal });
+    const url = `${serviceConfig.SCENE_SERVICE_URL}/api/v1/scene`;
+    const response = await axios.post(url, { ids: sceneIds }, { params: { minimal } });
+
+    if (!response.data.success || !response.data.data) {
+      throw new AppError('Scene not found', 404);
+    }
+
+    return response.data.data;
+  } catch (error) {
+    logger.error('Error fetching scene from Scene Service', {
+      error: error.message,
+      sceneId,
+    });
+    if (error.response?.status === 404) {
+      throw new AppError('Scene not found', 404);
+    }
+    
+    if (error instanceof AppError) {
+      throw error;
+    }
+    
+    throw new AppError('Scene Service is unavailable', 503);
+  }
+}
