@@ -5,7 +5,7 @@ export const sessionIdParamSchema = z.object({
 });
 
 export const roundIdParamSchema = z.object({
-  roundId: z.uuid('Invalid round ID format'),
+  roundNumber: z.string().regex(/^\d+$/).transform(Number).refine(n => n >= 1, "Round number must be at least 1"),
   sessionId: z.uuid('Invalid session ID format'),
 });
 

@@ -494,6 +494,4 @@ export default {
   submitGuess,
   revealScene,
   nextRound,
-  getGameHistory,
-  getUserGameHistory,
 };

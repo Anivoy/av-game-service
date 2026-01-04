@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+export const sessionIdParamSchema = z.object({
+  sessionId: z.uuid('Invalid session ID format'),
+});
+
 export const createGameSessionSchema = z
   .object({
     gameMode: z.string().min(1, 'Game mode cannot be empty').optional(),

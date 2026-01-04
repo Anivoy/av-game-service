@@ -11,7 +11,7 @@ async function getGameHistory(req, res, next) {
     const userId = getUserId(req);
     const { sessionId } = req.params;
 
-    const result = await gameService.getGameHistory(sessionId, userId);
+    const result = await historyService.getGameHistory(sessionId, userId);
 
     res.status(200).json({
       success: true,
@@ -27,7 +27,7 @@ async function getUserGameHistory(req, res, next) {
   try {
     const userId = getUserId(req);
 
-    const result = await gameService.getUserGameHistory(userId, req.query);
+    const result = await historyService.getUserGameHistory(userId, req.query);
 
     res.status(200).json({
       success: true,
@@ -43,9 +43,9 @@ async function getUserGameHistory(req, res, next) {
 async function getGameRound(req, res, next) {
   try {
     const userId = getUserId(req);
-    const { roundId, sessionId } = req.params;
+    const { sessionId, roundNumber } = req.params;
 
-    const result = await historyService.getGameRound(roundId, sessionId, userId);
+    const result = await historyService.getGameRound(roundNumber, sessionId, userId);
 
     res.status(200).json({
       success: true,

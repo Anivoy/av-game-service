@@ -4,7 +4,6 @@ import {
   createGameSessionSchema,
   submitGuessSchema,
   sessionIdParamSchema,
-  getHistoryQuerySchema,
 } from '../validations/game.validation.js';
 
 async function getGameSession(req, res, next) {
@@ -110,13 +109,5 @@ export default {
   nextRound: [
     validate(sessionIdParamSchema, 'params'),
     nextRound,
-  ],
-  getGameHistory: [
-    validate(sessionIdParamSchema, 'params'),
-    getGameHistory,
-  ],
-  getUserGameHistory: [
-    validate(getHistoryQuerySchema, 'query'),
-    getUserGameHistory,
-  ],
+  ]
 };

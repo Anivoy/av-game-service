@@ -131,11 +131,11 @@ async function getUserGameHistory(userId, query) {
   };
 }
 
-async function getGameRound(roundId, sessionId, userId) {
-  logger.info('Fetching game round history', { roundId, sessionId, userId });
+async function getGameRound(roundNumber, sessionId, userId) {
+  logger.info('Fetching game round history', { roundNumber, sessionId, userId });
 
   const session = await prisma.gameSession.findUnique({
-    where: { sessionId, userId },
+    where: { id: sessionId, userId },
     select: { id: true },
   });
 
@@ -144,8 +144,8 @@ async function getGameRound(roundId, sessionId, userId) {
     throw new AppError('Game session not found', 404);
   }
 
-  const round = await prisma.gameRound.findUnique({
-    where: { id: roundId, sessionId },
+  const round = await prisma.gameRound.findFirst({
+    where: { sessionId, roundNumber },
   });
 
   if (!round) {
@@ -153,11 +153,11 @@ async function getGameRound(roundId, sessionId, userId) {
     throw new AppError('Game round not found', 404);
   }
 
-  const scene = await fetchSceneById(round.sceneId);
+  const scene = await fetchSceneById(round.sceneId, { includeShowCover: true });
 
   if (!scene) {
     logger.warn('Scene not found in scene database', { sceneId: round.sceneId });
-  };
+  }
 
   delete round.sceneId;
   delete round.id;
@@ -183,8 +183,11 @@ async function getGameRound(roundId, sessionId, userId) {
       longitude: scene.longitude,
       snippet: scene.imagePairs?.snippetUrl || null,
       reference: scene.imagePairs?.referenceUrl || null,
-      difficulty: scene.difficulty,
-    }
+      difficulty: {
+        name: scene.difficulty?.name,
+        colorCode: scene.difficulty?.colorCode,
+      },
+    },
   };
 
   return result;
