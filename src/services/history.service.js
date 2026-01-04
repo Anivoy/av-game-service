@@ -1,7 +1,7 @@
 import prisma from '../db/index.js';
 import { logger } from '../config/logger.js';
 import { AppError } from '../utils/errorUtility.js';
-import { fetchSceneById, fetchSceneByIds } from '../utils/sceneUtility.js';
+import { fetchSceneById } from '../utils/sceneUtility.js';
 
 // Get game history
 async function getGameHistory(sessionId, userId) {
@@ -33,16 +33,9 @@ async function getGameHistory(sessionId, userId) {
     throw new AppError('Unauthorized access to this game session', 403);
   }
 
-  const scenes = await fetchSceneByIds(
-    session.rounds.map((r) => r.sceneId),
-    { minimal: true },
-  );
-  const sceneLookup = new Map(scenes.map((s) => [s.id, s]));
-
   const rounds = session.rounds.map((r) => ({
     roundNumber: r.roundNumber,
     sceneId: r.sceneId,
-    scene: sceneLookup.get(r.sceneId) || null,
     guess: {
       latitude: r.guessLat,
       longitude: r.guessLng,
